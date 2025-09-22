@@ -1,21 +1,13 @@
-// user-client.js
-import { jwtDecode } from "https://esm.sh/jwt-decode";
+import jwtDecode from "https://esm.sh/jwt-decode";
 
 let cachedUser = null;
 let fetchInProgress = null;
-let apiBase = null; // We'll set this from outside
+let apiBase = null;
 
-/**
- * Configure the base URL for API calls
- * @param {string} url - The base URL (e.g., http://localhost:8000 or https://auth.yourapp.com)
- */
 export function setApiBase(url) {
-  apiBase = url.replace(/\/+$/, ""); // remove trailing slash if present
+  apiBase = url.replace(/\/+$/, "");
 }
 
-/**
- * Helper: Read a cookie by name
- */
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -23,9 +15,6 @@ function getCookie(name) {
   return null;
 }
 
-/**
- * Get user details from JWT cookie (fast)
- */
 function getUserFromCookie() {
   try {
     const token = getCookie("auth_token");
@@ -37,9 +26,6 @@ function getUserFromCookie() {
   }
 }
 
-/**
- * Fetch fresh user details from /me API
- */
 async function fetchUserFromAPI() {
   if (!apiBase) throw new Error("API base not configured. Call setApiBase(url) first.");
 
@@ -51,9 +37,6 @@ async function fetchUserFromAPI() {
   return res.json();
 }
 
-/**
- * Public function to get current user
- */
 export async function getCurrentUser({ refresh = false } = {}) {
   if (cachedUser && !refresh) return cachedUser;
 
