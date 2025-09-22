@@ -1,12 +1,12 @@
 // user-client.js
-console.log("user-client.js 1");
+console.log("user-client.js loaded");
 import { jwtDecode } from "https://esm.sh/jwt-decode?exports=jwtDecode";
 
-console.log(jwtDecode);
-
-let cachedUser = null;
-let fetchInProgress = null;
-let apiBase = null; // We'll set this from outside
+let cachedUserContext = null;
+let cachedUserDetails = null;
+let contextFetchInProgress = null;
+let detailsFetchInProgress = null;
+let apiBase = null; // configured from outside
 
 /**
  * Configure the base URL for API calls
@@ -41,38 +41,75 @@ function getUserFromCookie() {
 }
 
 /**
- * Fetch fresh user details from /me API
+ * Fetch fresh user contexts from API
  */
-async function fetchUserFromAPI() {
-  if (!apiBase) throw new Error("API base not configured. Call setApiBase(url) first.");
+async function fetchUserContextFromAPI() {
+  if (!apiBase)
+    throw new Error("API base not configured. Call setApiBase(url) first.");
 
   const res = await fetch(`${apiBase}/user_management/user/contexts/`, {
     credentials: "include",
   });
 
-  if (!res.ok) throw new Error("Not logged in");
+  if (!res.ok) throw new Error("Not logged in (contexts)");
   return res.json();
 }
 
 /**
- * Public function to get current user
+ * Fetch fresh user details from API
  */
-export async function getCurrentUser({ refresh = false } = {}) {
-  if (cachedUser && !refresh) return cachedUser;
+async function fetchUserDetailsFromAPI() {
+  if (!apiBase)
+    throw new Error("API base not configured. Call setApiBase(url) first.");
 
-  cachedUser = getUserFromCookie();
+  const res = await fetch(`${apiBase}/user_management/users/`, {
+    credentials: "include",
+  });
 
-  if (!fetchInProgress) {
-    fetchInProgress = fetchUserFromAPI()
+  if (!res.ok) throw new Error("Not logged in (details)");
+  return res.json();
+}
+
+/**
+ * Public: Get current user context
+ */
+export async function getCurrentUserContext({ refresh = false } = {}) {
+  if (cachedUserContext && !refresh) return cachedUserContext;
+
+  cachedUserContext = getUserFromCookie();
+
+  if (!contextFetchInProgress) {
+    contextFetchInProgress = fetchUserContextFromAPI()
       .then((data) => {
-        cachedUser = data;
+        cachedUserContext = data;
         return data;
       })
       .catch((err) => {
-        console.error("Failed to fetch user from API:", err);
-        return cachedUser;
+        console.error("Failed to fetch user context:", err);
+        return cachedUserContext;
       });
   }
 
-  return fetchInProgress;
+  return contextFetchInProgress;
+}
+
+/**
+ * Public: Get current user details
+ */
+export async function getCurrentUserDetails({ refresh = false } = {}) {
+  if (cachedUserDetails && !refresh) return cachedUserDetails;
+
+  if (!detailsFetchInProgress) {
+    detailsFetchInProgress = fetchUserDetailsFromAPI()
+      .then((data) => {
+        cachedUserDetails = data;
+        return data;
+      })
+      .catch((err) => {
+        console.error("Failed to fetch user details:", err);
+        return cachedUserDetails;
+      });
+  }
+
+  return detailsFetchInProgress;
 }
