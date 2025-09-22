@@ -1,5 +1,8 @@
 // user-client.js
+console.log("user-client.js 1");
 import { jwtDecode } from "https://esm.sh/jwt-decode?exports=jwtDecode";
+
+console.log(jwtDecode);
 
 let cachedUser = null;
 let fetchInProgress = null;
