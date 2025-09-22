@@ -43,7 +43,7 @@ function getUserFromCookie() {
 async function fetchUserFromAPI() {
   if (!apiBase) throw new Error("API base not configured. Call setApiBase(url) first.");
 
-  const res = await fetch(`${apiBase}/api/me`, {
+  const res = await fetch(`${apiBase}/user_management/user/contexts/`, {
     credentials: "include",
   });
 
