@@ -113,3 +113,15 @@ export async function getCurrentUserDetails({ refresh = false } = {}) {
 
   return detailsFetchInProgress;
 }
+
+export function clearAuthCookie() {
+  document.cookie =
+    "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.yourdomain.com; Secure; SameSite=Strict";
+  
+  cachedUserContext = null;
+  cachedUserDetails = null;
+  contextFetchInProgress = null;
+  detailsFetchInProgress = null;
+
+  console.log("Auth cookie cleared from frontend");
+}
