@@ -116,7 +116,7 @@ export async function getCurrentUserDetails({ refresh = false } = {}) {
 
 export function clearAuthCookie() {
   document.cookie =
-    "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.yourdomain.com; Secure; SameSite=Strict";
+    "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.tarafirst.com; Secure; SameSite=Strict";
   
   cachedUserContext = null;
   cachedUserDetails = null;
