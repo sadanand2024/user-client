@@ -123,5 +123,5 @@ export function clearAuthCookie() {
   contextFetchInProgress = null;
   detailsFetchInProgress = null;
 
-  console.log("Auth cookie cleared from frontend");
+  console.log("Auth cookie cleared from frontend new");
 }
