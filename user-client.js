@@ -51,7 +51,7 @@ async function fetchUserContextFromAPI() {
     credentials: "include",
   });
 
-  if (!res.ok) throw new Error("Not logged in (contexts)");
+  if (!res.ok) throw new Error("Failed to fetch user contexts");
   return res.json();
 }
 
@@ -66,7 +66,7 @@ async function fetchUserDetailsFromAPI() {
     credentials: "include",
   });
 
-  if (!res.ok) throw new Error("Not logged in (details)");
+  if (!res.ok) throw new Error("Failed to fetch user details");
   return res.json();
 }
 
@@ -74,19 +74,30 @@ async function fetchUserDetailsFromAPI() {
  * Public: Get current user context
  */
 export async function getCurrentUserContext({ refresh = false } = {}) {
+  // If we have cached data and not refreshing, return it
   if (cachedUserContext && !refresh) return cachedUserContext;
 
-  cachedUserContext = getUserFromCookie();
+  // If refresh is requested, clear cache and fetch in progress
+  if (refresh) {
+    cachedUserContext = null;
+    contextFetchInProgress = null;
+  }
 
+  // If no fetch in progress, start one
   if (!contextFetchInProgress) {
     contextFetchInProgress = fetchUserContextFromAPI()
       .then((data) => {
         cachedUserContext = data;
+        contextFetchInProgress = null; // Clear the in-progress flag
         return data;
       })
       .catch((err) => {
         console.error("Failed to fetch user context:", err);
-        return cachedUserContext;
+        contextFetchInProgress = null; // Clear the in-progress flag
+        // Fall back to JWT cookie data if API fails
+        const fallbackData = getUserFromCookie();
+        cachedUserContext = fallbackData;
+        return fallbackData;
       });
   }
 
@@ -97,16 +108,26 @@ export async function getCurrentUserContext({ refresh = false } = {}) {
  * Public: Get current user details
  */
 export async function getCurrentUserDetails({ refresh = false } = {}) {
+  // If we have cached data and not refreshing, return it
   if (cachedUserDetails && !refresh) return cachedUserDetails;
 
+  // If refresh is requested, clear cache and fetch in progress
+  if (refresh) {
+    cachedUserDetails = null;
+    detailsFetchInProgress = null;
+  }
+
+  // If no fetch in progress, start one
   if (!detailsFetchInProgress) {
     detailsFetchInProgress = fetchUserDetailsFromAPI()
       .then((data) => {
         cachedUserDetails = data;
+        detailsFetchInProgress = null; // Clear the in-progress flag
         return data;
       })
       .catch((err) => {
         console.error("Failed to fetch user details:", err);
+        detailsFetchInProgress = null; // Clear the in-progress flag
         return cachedUserDetails;
       });
   }
@@ -114,14 +135,21 @@ export async function getCurrentUserDetails({ refresh = false } = {}) {
   return detailsFetchInProgress;
 }
 
-export function clearAuthCookie() {
-  document.cookie =
-    "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.tarafirst.com; Secure; SameSite=Strict";
-  
+/**
+ * Clear all cached user data (useful after login/logout)
+ */
+export function clearUserCache() {
   cachedUserContext = null;
   cachedUserDetails = null;
   contextFetchInProgress = null;
   detailsFetchInProgress = null;
+  console.log("User cache cleared");
+}
 
+export function clearAuthCookie() {
+  document.cookie =
+    "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.tarafirst.com; Secure; SameSite=Strict";
+  
+  clearUserCache();
   console.log("Auth cookie cleared from frontend new");
 }
