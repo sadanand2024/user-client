@@ -43,13 +43,20 @@ function getUserFromCookie() {
 /**
  * Fetch fresh user contexts from API
  */
-async function fetchUserContextFromAPI() {
+async function fetchUserContextFromAPI(module_id) {
   if (!apiBase)
     throw new Error("API base not configured. Call setApiBase(url) first.");
 
-  const res = await fetch(`${apiBase}/user_management/user/contexts/`, {
-    credentials: "include",
-  });
+   const queryParams = module_id
+    ? `?module_id=${encodeURIComponent(module_id)}`
+    : "";
+
+  const res = await fetch(
+    `${apiBase}/user_management/user/contexts/${queryParams}`,
+    {
+      credentials: "include",
+    }
+  );
 
   if (!res.ok) throw new Error("Failed to fetch user contexts");
   return res.json();
@@ -73,13 +80,13 @@ async function fetchUserDetailsFromAPI() {
 /**
  * Public: Get current user context
  */
-export async function getCurrentUserContext({ refresh = false } = {}) {
+export async function getCurrentUserContext({module_id = null,  refresh = false } = {}) {
   if (cachedUserContext && !refresh) return cachedUserContext;
 
   cachedUserContext = getUserFromCookie();
 
   if (!contextFetchInProgress) {
-    contextFetchInProgress = fetchUserContextFromAPI()
+    contextFetchInProgress = fetchUserContextFromAPI(module_id)
       .then((data) => {
         cachedUserContext = data;
         return data;
